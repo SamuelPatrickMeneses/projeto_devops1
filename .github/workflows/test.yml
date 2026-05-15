@@ -24,9 +24,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker compose --profile test up \
-            --abort-on-container-exit \
-            --exit-code-from java-test
+          docker compose --profile test up --abort-on-container-exit --exit-code-from java-test
 
       - name: Collect test reports
         if: always()

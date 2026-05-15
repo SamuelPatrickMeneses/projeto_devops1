@@ -5,14 +5,13 @@ RUN wget -O /opt/gradle/gradle.zip https://services.gradle.org/distributions/gra
 RUN apt update -y && apt install zip  iproute2 -y
 RUN unzip /opt/gradle/gradle.zip -d /opt/gradle && chmod 777 -R /opt/gradle/gradle-8.7
 
-# CORREÇÃO: Copia recursivamente tudo (arquivos e pastas) mantendo a estrutura
+# Cria o usuário gradle (UID 1000) para a JVM carregar bibliotecas nativas
+RUN groupadd -g 1000 gradle && useradd -u 1000 -g 1000 -m -s /bin/bash gradle
+
 COPY --chmod=777 --chown=1000:1000 . /home/ubuntu
 
 WORKDIR /home/ubuntu
-USER 1000:1000
+USER gradle
 
-#ENTRYPOINT ./devserver/docker-entrypoint.sh
-
-# CORREÇÃO: Sintaxe correta para exclusão de tarefas de submódulos no Gradle (sem os dois pontos iniciais no -x)
 CMD ["/opt/gradle/gradle-8.7/bin/gradle", "clean", ":app:libertyDev", "--no-daemon", "--skipTests"]
 
