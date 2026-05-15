@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="3.0"
+             xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
+                                 https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+
+    <persistence-unit name="notesPU" transaction-type="JTA">
+        <jta-data-source>jdbc/notesDS</jta-data-source>
+        <class>org.example.models.Note</class>
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+        <properties>
+            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
+            <!-- Força o EclipseLink a não validar antes da hora se a conexão falhar -->
+            <property name="eclipselink.deploy-on-startup" value="true"/>
+
+            <!-- Opção B: Forçar a busca se não quiser listar classe por classe -->
+            <property name="exclude-unlisted-classes" value="false" />
+            
+            <!-- Evita o aviso do MBean Server no Liberty -->
+            <property name="eclipselink.target-server" value="Liberty"/>
+        </properties>
+    </persistence-unit>
+    
+</persistence>

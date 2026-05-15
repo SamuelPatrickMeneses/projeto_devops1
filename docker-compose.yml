@@ -1,0 +1,155 @@
+services: 
+  java-build:
+    profiles:
+      - "prod"
+    build:
+      context: ./devserver
+      dockerfile: Dockerfile
+    volumes:
+      - .:/home/ubuntu
+    user: 1000:1000
+    command: ["/opt/gradle/gradle-8.7/bin/gradle", ":app:build", "--no-daemon", "-x :app:test"]
+
+  java:
+    profiles:
+      - "prod"
+    build:
+      context: .
+      dockerfile: ./server/Dockerfile
+    volumes:
+      - "./app/build/libs/app.war:/config/apps/app.war"
+      - "./server/server.xml:/config/server.xml"
+      - "./.env:/config/server.env"
+      - "./server/postgresql-42.7.3.jar:/config/lib/postgresql-42.7.3.jar"
+    # ports removed, nginx will expose the service
+    depends_on:
+      db:
+        condition: service_healthy
+      java-build:
+        condition: service_completed_successfully
+    networks: 
+      - internal
+
+  java-dev:
+    profiles:
+      - "dev"
+      - "test"
+    build:
+      context: ./devserver
+      dockerfile: Dockerfile
+    volumes:
+      - .:/home/ubuntu
+    depends_on:
+      db:
+        condition: service_healthy
+      selenium-chrome:
+        condition: service_started
+    networks: 
+      - internal
+    environment:
+      APP_ENV: test
+    user: 1000:1000
+    healthcheck:
+      test: ["CMD-SHELL", "ss -tln | grep -q :8080"]
+      interval: 10s     
+      timeout: 3s      
+      retries: 15      
+      start_period: 10s
+
+
+  java-test:
+    profiles:
+      - "test"
+    build:
+      context: ./devserver
+      dockerfile: Dockerfile
+    volumes:
+      - .:/home/ubuntu
+    environment:
+      GRADLE_USER_HOME: /tmp/gradle-home
+    depends_on:
+      db:
+        condition: service_healthy
+      selenium-chrome:
+        condition: service_started
+      nginx-dev:
+        condition: service_healthy
+      java-dev:
+        condition: service_healthy 
+    networks:      
+      - internal
+    user: 1000:1000
+    command: ["/opt/gradle/gradle-8.7/bin/gradle", ":app:test", "--no-daemon", "--project-cache-dir", "/tmp/gradle-home"]
+
+  db:
+    image: postgres:latest
+    profiles:
+      - "dev"
+      - "test"
+      - "prod"
+    env_file: "./.env"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    networks: 
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  nginx-prod:
+    image: nginx:latest
+    profiles:
+      - "prod"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx/prod/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - "80:80"
+    depends_on:
+      java:
+        condition: service_started
+    networks: 
+      - internal
+
+  nginx-dev:
+    profiles:
+      - "dev"
+      - "test"
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx/dev/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - "80:80"
+    networks: 
+      - internal
+    depends_on:
+      java-dev:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "ss -tln | grep -q :80"]
+      interval: 10s     
+      timeout: 3s      
+      retries: 15      
+      start_period: 10s
+
+
+  selenium-chrome:
+    profiles:
+      - "dev"
+      - "test"
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

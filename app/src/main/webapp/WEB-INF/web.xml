@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee"
+         version="5.0">
+
+    <!-- Seu MyAppListener está comentado, mas se for usar, 
+         garanta que ele use pacotes jakarta.* e não javax.* -->
+    <!--
+    <listener>
+        <listener-class>org.example.listeners.MyAppListener</listener-class>
+    </listener>
+    -->
+
+
+</web-app>
+

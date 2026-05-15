@@ -1,0 +1,26 @@
+# --- Gradle ---
+.gradle/
+build/
+*/build/
+*.jar
+# --- IDE ---
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+*.swo
+
+# --- Environment ---
+.env
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Project-specific ---
+gradle.zip
+temp.mf
+.bash_history

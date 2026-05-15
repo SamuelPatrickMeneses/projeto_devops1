@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="new server">
+
+    <!-- Enable features -->
+    <featureManager>
+        <!--<feature>jakartaee-10.0</feature>-->
+        <feature>servlet-5.0</feature>
+        <feature>restfulWs-3.0</feature>
+        <feature>persistence-3.0</feature>
+        <feature>beanValidation-3.0</feature>
+        <feature>jdbc-4.2</feature>
+        <feature>jsonb-2.0</feature>
+    </featureManager>
+
+    <dataSource id="notesDS" jndiName="jdbc/notesDS">
+        <jdbcDriver libraryRef="PostgresLib" />
+        <properties.postgresql 
+            url="${DB_URL}" 
+            user="${DB_USER}" 
+            password="${DB_PASSWORD}" />
+    </dataSource>
+    <!--<dataSource id="notesDS" jndiName="jdbc/notesDS">
+        <jdbcDriver libraryRef="PostgresLib" />
+        <properties.postgresql 
+            serverName="db" 
+            portNumber="5432" 
+            databaseName="notesdb"
+            user="${DB_USER}" 
+            password="${DB_PASSWORD}" />
+    </dataSource> -->
+
+    <library id="PostgresLib">
+        <file name="${server.config.dir}/lib/postgresql-42.7.3.jar" />
+    </library>
+    <!--/wlp/usr/servers/defaultServer/lib-->
+
+    
+    <variable name="keystore_password" value="senhaforteaqui13713233445566" />
+
+    <webApplication
+        id="app"
+        type="war"
+        autoStart="true"
+        contextRoot="/api"
+        name="app"
+        location="${server.config.dir}/apps/app.war">
+
+        <classloader apiTypeVisibility="spec, ibm-api, api, third-party" />
+        
+    </webApplication>
+
+    <basicRegistry id="basic" realm="BasicRealm"> 
+        <!-- <user name="yourUserName" password="" />  --> 
+    </basicRegistry>
+    
+    <!-- To access this server from a remote client add a host attribute to the followig element, e.g. host="*" -->
+    <httpEndpoint id="defaultHttpEndpoint"
+                  host="*"
+                  httpPort="8080"
+                  httpsPort="9443" />
+                  
+    <!-- Automatically expand WAR files and EAR files -->
+    <applicationMonitor updateTrigger="mbean" pollingRate="500ms" dropinsEnabled="true" />
+    <!-- Default SSL configuration enables trust for default certificates from the Java runtime --> 
+    <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
+
+    <logging logDirectory="${server.config.dir}/logs" />
+
+</server>
+
