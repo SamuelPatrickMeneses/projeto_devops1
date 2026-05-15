@@ -6,7 +6,8 @@ RUN apt update -y && apt install zip  iproute2 -y
 RUN unzip /opt/gradle/gradle.zip -d /opt/gradle && chmod 777 -R /opt/gradle/gradle-8.7
 
 # Cria o usuário gradle (UID 1000) para a JVM carregar bibliotecas nativas
-RUN groupadd -g 1000 gradle && useradd -u 1000 -g 1000 -m -s /bin/bash gradle
+# UID e GID 1000 já existem na imagem base (eclipse-temurin)
+RUN useradd -u 1000 -g 1000 -o -m -s /bin/bash gradle
 
 COPY --chmod=777 --chown=1000:1000 . /home/ubuntu
 
