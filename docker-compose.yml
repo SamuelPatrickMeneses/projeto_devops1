@@ -8,7 +8,7 @@ services:
     volumes:
       - .:/home/ubuntu
     user: 1000:1000
-    command: ["/opt/gradle/gradle-8.7/bin/gradle", ":app:build", "--no-daemon", "-x :app:test"]
+    command: ["/opt/gradle/gradle-8.7/bin/gradle", ":app:build", "--no-daemon", "--skipTests"]
 
   java:
     profiles:
@@ -79,7 +79,7 @@ services:
     networks:      
       - internal
     user: 1000:1000
-    command: ["/opt/gradle/gradle-8.7/bin/gradle", ":app:test", "--no-daemon", "--project-cache-dir", "/tmp/gradle-home"]
+    command: ["./gradlew", ":app:test", "--no-daemon", "--project-cache-dir", "/tmp/gradle-home"]
 
   db:
     image: postgres:latest
