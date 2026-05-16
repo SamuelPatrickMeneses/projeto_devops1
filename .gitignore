@@ -3,6 +3,7 @@
 build/
 */build/
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 # --- IDE ---
 .idea/
 *.iml
