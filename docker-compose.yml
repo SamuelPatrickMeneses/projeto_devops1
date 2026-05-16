@@ -37,10 +37,10 @@ services:
     build:
       context: .
       dockerfile: ./devserver/Dockerfile
-      args:
-        _GRADLE_USER_HOME: /tmp/gradle-dev-home
     volumes:
-      - .:/home/ubuntu
+      - ./app/src:/home/ubuntu/app/src
+      - ./app/build.gradle:/home/samuel/app/build.gradle
+      - ./server/server.xml:/home/samuel/server/server.xml
     depends_on:
       db:
         condition: service_healthy
@@ -48,8 +48,6 @@ services:
         condition: service_started
     networks: 
       - internal
-    environment:
-      GRADLE_USER_HOME: /tmp/gradle-dev-home
     user: 1000:1000
     healthcheck:
       test: ["CMD-SHELL", "ss -tln | grep -q :8080"]
@@ -65,12 +63,10 @@ services:
     build:
       context: .
       dockerfile: ./devserver/Dockerfile
-      args:
-        _GRADLE_USER_HOME: /tmp/gradle-test-home
     volumes:
-      - .:/home/ubuntu
-    environment:
-      GRADLE_USER_HOME: /tmp/gradle-test-home
+      - ./app/src:/home/ubuntu/app/src
+      - ./app/build.gradle:/home/samuel/app/build.gradle
+      - ./server/server.xml:/home/samuel/server/server.xml
     depends_on:
       db:
         condition: service_healthy
@@ -83,7 +79,7 @@ services:
     networks:      
       - internal
     user: 1000:1000
-    command: ["./gradlew", ":app:test", "--no-daemon", "--project-cache-dir", "/tmp/gradle-home"]
+    command: ["./gradlew", ":app:test", "--no-daemon", "--gradle-user-home", "~/.gradle-home"]
 
   db:
     image: postgres:latest
