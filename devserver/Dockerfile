@@ -7,7 +7,7 @@ RUN apt update -y && apt install zip  iproute2 -y
 
 COPY --chmod=777 --chown=ubuntu:ubuntu . /home/ubuntu
 
-RUN wget -O /home/ubuntu/server/postgresql-42.7.3.jar https://jdbc.postgresql.org/download/postgresql-42.7.3.jar
+RUN [ ! -f /home/ubuntu/server/postgresql-42.7.3.jar ] && wget -O /home/ubuntu/server/postgresql-42.7.3.jar https://jdbc.postgresql.org/download/postgresql-42.7.3.jar || true
 
 # Cria o usuário gradle (UID 1000) para a JVM carregar bibliotecas nativas
 # UID e GID 1000 já existem na imagem base (eclipse-temurin)
@@ -19,9 +19,9 @@ USER ubuntu
 
 #ARG _GRADLE_USER_HOME
 
-ENV GRADLE_USER_HOME=~/.gradle-home
+ENV GRADLE_USER_HOME=/home/ubuntu/.gradle-home
 
-RUN ./gradlew wrapper
+RUN ./gradlew clean wrapper --no-daemon --gradle-user-home /home/ubuntu/.gradle-home
 
 CMD ["./gradlew", "clean", ":app:libertyDev", "--no-daemon", "--skipTests", "--gradle-user-home", "$GRADLE_USER_HOME"]
 

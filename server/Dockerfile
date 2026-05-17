@@ -16,8 +16,6 @@ COPY --chown=1001:0  ./server/server.xml /config/
 # Add app
 
 
-COPY --chown=1001:0 --chmod=777 ./app/build/libs/app.war /config/apps/
-COPY --chown=1001:0 --chmod=777  ./server/postgresql-42.7.3.jar /opt/ol/wlp/usr/shared/resources/
 
 EXPOSE 8080
 

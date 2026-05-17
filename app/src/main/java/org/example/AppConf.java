@@ -2,9 +2,12 @@ package org.example;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
+import org.example.controller.NoteController;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
@@ -16,6 +19,12 @@ import jakarta.ws.rs.ApplicationPath;
 @ApplicationScoped
 public class AppConf extends jakarta.ws.rs.core.Application {
 
+    @Override
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> classes = new HashSet<>();
+        classes.add(NoteController.class);
+        return classes;
+    }
 
     @Override
     public Map<String, Object> getProperties() {
