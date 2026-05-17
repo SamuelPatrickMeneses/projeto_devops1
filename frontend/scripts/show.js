@@ -1,21 +1,34 @@
 window.addEventListener("load", async () => {
-    let id = window.location.href.split("/").pop();
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const pathId = urlParams.get('id');
+    console.log(pathId);
 
-    if (isNaN(id)) {
-        id = parseInt(id);
+    if (!isNaN(pathId)) {
+        const numericId = parseInt(pathId, 10);
         const title = document.getElementById("title");
         const content = document.getElementById("content");
         const deleteButton = document.getElementById("delete-btn");
-        deleteButton.addEventListener("click", () => {
-            fetch(`http://localhost:8080/app/notes/${id}`, {
-                method: "DELETE"
-            }).then(() => open('/app'));
+        const updateButton = document.getElementById("update-btn");
+
+        updateButton.addEventListener("click", () => {
+            open(`/update.html?id=${numericId}`, '_self');
         });
-        const note = await fetch("http://localhost:8080/app/notes/" + id)
-            .then(res => res.json());
-        title.innerText = note.title;
-        content.innerText = note.content;
+
+        deleteButton.addEventListener("click", () => {
+            fetch(`/api/notes/${numericId}`, {
+                method: "DELETE"
+            }).then(() => open('/', '_self'));
+        });
+
+        fetch("/api/notes/" + numericId)
+            .then(res => res.json())
+            .then((note) => {
+                title.innerText = note.title;
+                content.innerText = note.content;
+            })
+            .catch(() => open('/', '_self'));
     } else {
-        open('/app')
+        open('/', '_self');
     }
 });

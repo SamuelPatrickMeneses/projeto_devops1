@@ -221,3 +221,6 @@ body {
 .back-link:hover {
     color: #4a6fa5;
 }
+.flex {
+    display: flex;
+}

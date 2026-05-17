@@ -10,8 +10,7 @@ window.addEventListener("load", async () => {
         notes.forEach(note => {
             const noteElement = document.createElement("div");
             noteElement.innerHTML = `
-                <h3>${note.title}</h3>
-                <p>${note.content}</p>
+                <h3><a href="/show.html?id=${note.id}"> ${note.title}</h3>
                 <a href="update.html?id=${note.id}"> Editar</a>
                 <button class="delete-btn" data-id="${note.id}">Deletar</button>
             `;

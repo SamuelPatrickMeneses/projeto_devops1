@@ -68,16 +68,39 @@ URL base: `base.uri` (padrão `http://nginx-dev/api`).
 ### NoteAcceptanceTest — Aceitação (Selenium)
 
 `@TestInstance(PER_CLASS)`. Conecta ao Selenium Grid, usa `HttpClient` para limpeza de dados via API.
+Os testes interagem com JavaScript real no browser — carregamento assíncrono, redirecionamentos via `open()`
+e branches condicionais (ex.: ID inválido) são todos exercitados.
 
 **Isolamento:** `@BeforeEach` deleta todas as notas via GET + DELETE; `@AfterEach` deleta a nota criada no teste.
 
-| Teste                                    | Descrição                                              |
-|------------------------------------------|--------------------------------------------------------|
-| `testListPage_showsEmptyState`           | "Sem notas." na página inicial                         |
-| `testListPage_showsExistingNotes`        | Cria nota via API, verifica renderização na lista      |
-| `testCreateNote_createsAndRedirectsToList` | Preenche formulário, salva, verifica redirect e lista |
-| `testUpdatePage_loadsExistingData`       | Navega para edição, verifica dados carregados          |
-| `testUpdateNote_updatesAndRedirectsToList` | Edita nota, verifica redirect e lista atualizada      |
+**Listagem (`/`)**
+
+| Teste                                    | Descrição                                                        |
+|------------------------------------------|------------------------------------------------------------------|
+| `testListPage_showsEmptyState`           | "Sem notas." quando não há notas; link "Criar nota" visível       |
+| `testListPage_showsExistingNotes`        | Cria nota via API, verifica título (link p/ show), Editar e Deletar |
+
+**Detalhes (`/show.html?id=`)**
+
+| Teste                                         | Descrição                                                           |
+|-----------------------------------------------|---------------------------------------------------------------------|
+| `testShowPage_displaysExistingNoteData`       | Título e conteúdo carregados via fetch; botões Editar/Deletar visíveis |
+| `testShowPage_deleteNote_redirectsToIndex`    | Deleta via show page, redireciona para `/`, nota some da lista       |
+| `testShowPage_updateButton_navigatesToUpdatePage` | Botão Editar navega para update.html com ID; dados pré-carregados |
+| `testShowPage_invalidId_redirectsToIndex`     | ID não numérico redireciona imediatamente para `/`                   |
+
+**Criação (`/new.html`)**
+
+| Teste                                    | Descrição                                                              |
+|------------------------------------------|------------------------------------------------------------------------|
+| `testCreateNote_createsAndRedirectsToList` | Preenche formulário, salva, verifica redirect e título na lista       |
+
+**Edição (`/update.html?id=`)**
+
+| Teste                                    | Descrição                                                          |
+|------------------------------------------|--------------------------------------------------------------------|
+| `testUpdatePage_loadsExistingData`       | Dados pré-carregados no formulário; botões Update/Delete presentes |
+| `testUpdateNote_updatesAndRedirectsToList` | Edita, salva, verifica redirect e título atualizado na lista      |
 
 | Propriedade    | Padrão                        | Descrição                   |
 |----------------|-------------------------------|-----------------------------|

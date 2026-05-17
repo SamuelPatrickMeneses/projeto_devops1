@@ -1,6 +1,7 @@
 # --- Gradle ---
 .gradle/
 build/
+app/bin/
 */build/
 *.jar
 !gradle/wrapper/gradle-wrapper.jar

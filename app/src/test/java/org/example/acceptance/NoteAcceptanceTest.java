@@ -165,7 +165,7 @@ class NoteAcceptanceTest {
 
         // Título da página
         String pageTitle = driver.findElement(By.cssSelector(".page-title")).getText();
-        assertEquals("Notas", pageTitle);
+        assertEquals("Notas.com", pageTitle);
 
         // Link "Criar nota" deve estar visível
         WebElement criarLink = driver.findElement(By.linkText("Criar nota"));
@@ -190,11 +190,14 @@ class NoteAcceptanceTest {
 
         WebElement notesContainer = driver.findElement(By.id("notes"));
 
-        // Verifica que o título e conteúdo aparecem
+        // Verifica que o título aparece como link para a página de detalhes
         assertTrue(notesContainer.getText().contains("Nota da lista"));
-        assertTrue(notesContainer.getText().contains("Conteúdo visível na index"));
+        WebElement titleLink = notesContainer.findElement(
+                By.cssSelector("a[href$='/show.html?id=" + createdNoteId + "']"));
+        assertTrue(titleLink.isDisplayed(),
+                "Título deveria ser link para show.html com o ID da nota");
 
-        // Verifica que existe link "Editar" para a nota específica
+        // Verifica que existe link "Editar" para a nota
         WebElement editLink = notesContainer.findElement(
                 By.xpath(".//a[contains(@href, 'update.html?id=" + createdNoteId + "')]"));
         assertTrue(editLink.isDisplayed());
@@ -208,6 +211,99 @@ class NoteAcceptanceTest {
     }
 
     // ------------------------------------------------------------------ //
+    //  Testes — Detalhes da Nota (Show)
+    // ------------------------------------------------------------------ //
+
+    @Test
+    void testShowPage_displaysExistingNoteData() throws Exception {
+        createdNoteId = createNoteViaApi("Título do show", "Conteúdo da página de detalhes");
+
+        // Navega para a página de detalhes
+        driver.get(appUrl + "/show.html?id=" + createdNoteId);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
+
+        // Aguarda o título ser carregado dinamicamente
+        waitForText(By.id("title"), "Título do show");
+
+        // Verifica que o título e conteúdo são exibidos
+        assertEquals("Título do show", driver.findElement(By.id("title")).getText());
+        assertEquals("Conteúdo da página de detalhes",
+                driver.findElement(By.id("content")).getText());
+
+        // Verifica que os botões de ação estão presentes
+        WebElement updateBtn = driver.findElement(By.id("update-btn"));
+        WebElement deleteBtn = driver.findElement(By.id("delete-btn"));
+        assertTrue(updateBtn.isDisplayed(), "Botão Editar deveria estar visível");
+        assertTrue(deleteBtn.isDisplayed(), "Botão Deletar deveria estar visível");
+
+        // Verifica que o link "Voltar" está presente
+        WebElement backLink = driver.findElement(By.cssSelector(".back-link"));
+        assertTrue(backLink.isDisplayed());
+        assertTrue(backLink.getAttribute("href").endsWith("/"),
+                "Link Voltar deveria apontar para a raiz");
+    }
+
+    @Test
+    void testShowPage_deleteNote_redirectsToIndex() throws Exception {
+        createdNoteId = createNoteViaApi("Nota para deletar", "Será removida pelo show");
+
+        // Navega para a página de detalhes
+        driver.get(appUrl + "/show.html?id=" + createdNoteId);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
+
+        // Aguarda o título carregar e clica em Deletar
+        waitForText(By.id("title"), "Nota para deletar");
+        driver.findElement(By.id("delete-btn")).click();
+
+        // Aguarda o redirect para a página inicial
+        wait.until(ExpectedConditions.urlMatches(".*/$"));
+
+        // Verifica que a nota não aparece mais na lista
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("notes")));
+        String notesText = driver.findElement(By.id("notes")).getText();
+        assertFalse(notesText.contains("Nota para deletar"),
+                "Nota deletada não deveria aparecer na lista");
+
+        // Nota já foi removida, evita que o tearDown tente deletar novamente
+        createdNoteId = null;
+    }
+
+    @Test
+    void testShowPage_updateButton_navigatesToUpdatePage() throws Exception {
+        createdNoteId = createNoteViaApi("Nota via show", "Conteúdo via show");
+
+        // Navega para a página de detalhes
+        driver.get(appUrl + "/show.html?id=" + createdNoteId);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
+        waitForText(By.id("title"), "Nota via show");
+
+        // Clica no botão Editar
+        driver.findElement(By.id("update-btn")).click();
+
+        // Aguarda navegação para a página de update
+        wait.until(ExpectedConditions.urlContains("update.html?id=" + createdNoteId));
+
+        // Verifica que a página de update carregou os dados da nota
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
+        WebElement titleInput = driver.findElement(By.id("title"));
+        wait.until(ExpectedConditions.not(
+                ExpectedConditions.attributeToBe(titleInput, "value", "")));
+        assertEquals("Nota via show", titleInput.getAttribute("value"));
+    }
+
+    @Test
+    void testShowPage_invalidId_redirectsToIndex() {
+        // Navega para show.html com ID inválido
+        driver.get(appUrl + "/show.html?id=abc");
+
+        // Deve redirecionar imediatamente para a raiz
+        wait.until(ExpectedConditions.urlMatches(".*/$"));
+
+        // Verifica que caiu na página inicial
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("notes")));
+    }
+
+    // ------------------------------------------------------------------ //
     //  Testes — Criação de Notas
     // ------------------------------------------------------------------ //
 
@@ -216,8 +312,8 @@ class NoteAcceptanceTest {
         driver.get(appUrl + "/new.html");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
 
-        // Verifica o título da página
-        assertEquals("Nova nota", driver.findElement(By.cssSelector(".page-title")).getText());
+        // Verifica o título da página (h2.page-title, pois o h1 é "Notas.com")
+        assertEquals("Nova nota", driver.findElement(By.cssSelector("h2.page-title")).getText());
 
         // Preenche o formulário
         driver.findElement(By.id("title")).sendKeys("Nota de aceitação");
@@ -233,11 +329,8 @@ class NoteAcceptanceTest {
         // Verifica que a nota aparece na lista
         waitForText(By.id("notes"), "Nota de aceitação");
 
-        String notesText = driver.findElement(By.id("notes")).getText();
-        assertTrue(notesText.contains("Conteúdo gerado pelo teste de aceitação"));
-
         // Extrai o ID da nota para limpeza — olha no link "Editar"
-        WebElement editLink = driver.findElement(By.linkText("Editar"));
+        WebElement editLink = driver.findElement(By.partialLinkText("Editar"));
         String href = editLink.getAttribute("href");
         Matcher matcher = Pattern.compile("id=(\\d+)").matcher(href);
         if (matcher.find()) {
@@ -305,8 +398,5 @@ class NoteAcceptanceTest {
 
         // Verifica que a nota atualizada aparece na lista
         waitForText(By.id("notes"), "Depois da edição");
-
-        String notesText = driver.findElement(By.id("notes")).getText();
-        assertTrue(notesText.contains("Conteúdo atualizado pelo teste"));
     }
 }
